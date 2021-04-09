@@ -88,8 +88,23 @@ export class AppService implements IRestableService {
       },
     };
   }
-  editItem(type: string, id: string, attributes: AttributeType): Promise<ResourceResponse> {
-    throw new Error('Method not implemented.');
+
+  async editItem(
+    type: string,
+    id: string,
+    attributes: AttributeType,
+  ): Promise<ResourceResponse> {
+    const doc = await this.getDocumentByKey(id);
+    const newDoc = { ...doc, ...attributes };
+    const collection = await this.getCollection();
+    await collection.upsert(id, newDoc);
+    return {
+      data: {
+        id,
+        type,
+        attributes: this.removeMetaData(newDoc),
+      },
+    };
   }
   getItemsByType(type: string): Promise<ResourceListResponse> {
     throw new Error('Method not implemented.');
