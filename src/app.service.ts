@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import {
   AttributeType,
   IRestableService,
+  ResourceListResponse,
   ResourceResponse,
 } from '@obel/restable';
 import * as couchbase from 'couchbase';
@@ -75,7 +76,7 @@ export class AppService implements IRestableService {
         },
         HttpStatus.NOT_FOUND,
       );
-  }
+    }
   }
 
   async findById(type: string, id: string): Promise<ResourceResponse> {
@@ -106,7 +107,19 @@ export class AppService implements IRestableService {
       },
     };
   }
-  getItemsByType(type: string): Promise<ResourceListResponse> {
-    throw new Error('Method not implemented.');
+  async getItemsByType(type: string): Promise<ResourceListResponse> {
+    const query = `SELECT META().id, * FROM \`${this.bucket}\` AS data WHERE ${this.typeAttribute}='${type}'`;
+    const cluster = await this.getCluster();
+    const response = await cluster.query(query);
+    console.log(response.meta);
+    return {
+      data: response.rows.map((row) => {
+        return {
+          id: row['id'],
+          type: row['data'][this.typeAttribute],
+          attributes: { ...this.removeMetaData(row['data']) },
+        };
+      }),
+    };
   }
 }
