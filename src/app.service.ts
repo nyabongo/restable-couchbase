@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import {
   AttributeType,
   IRestableService,
@@ -52,8 +52,41 @@ export class AppService implements IRestableService {
       },
     };
   }
-  findById(type: string, id: string): Promise<ResourceResponse> {
-    throw new Error('Method not implemented.');
+  private removeMetaData(data: AttributeType) {
+    const response = { ...data };
+    delete response[this.typeAttribute];
+    return response;
+  }
+
+  private async getDocumentByKey(key: string) {
+    const collection = await this.getCollection();
+    try {
+      const result = await collection.get(key);
+      return result.content;
+    } catch (error) {
+      throw new HttpException(
+        {
+          errors: [
+            {
+              title: 'Document not found',
+              details: 'Failed to find the document with the given key',
+            },
+          ],
+        },
+        HttpStatus.NOT_FOUND,
+      );
+  }
+  }
+
+  async findById(type: string, id: string): Promise<ResourceResponse> {
+    const data = await this.getDocumentByKey(id);
+    return {
+      data: {
+        id,
+        type,
+        attributes: { ...this.removeMetaData(data) },
+      },
+    };
   }
   editItem(type: string, id: string, attributes: AttributeType): Promise<ResourceResponse> {
     throw new Error('Method not implemented.');
