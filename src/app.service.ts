@@ -59,11 +59,14 @@ export class AppService implements IRestableService {
     return response;
   }
 
-  private async getDocumentByKey(key: string) {
+  private async getDocumentByKey(key: string, type: string) {
     const collection = await this.getCollection();
     try {
-      const result = await collection.get(key);
-      return result.content;
+      const { content } = await collection.get(key);
+      if (content[this.typeAttribute] != type) {
+        throw 'Type does not match';
+      }
+      return content;
     } catch (error) {
       throw new HttpException(
         {
@@ -80,7 +83,7 @@ export class AppService implements IRestableService {
   }
 
   async findById(type: string, id: string): Promise<ResourceResponse> {
-    const data = await this.getDocumentByKey(id);
+    const data = await this.getDocumentByKey(id, type);
     return {
       data: {
         id,
@@ -95,7 +98,7 @@ export class AppService implements IRestableService {
     id: string,
     attributes: AttributeType,
   ): Promise<ResourceResponse> {
-    const doc = await this.getDocumentByKey(id);
+    const doc = await this.getDocumentByKey(id, type);
     const newDoc = { ...doc, ...attributes };
     const collection = await this.getCollection();
     await collection.upsert(id, newDoc);
