@@ -17,11 +17,11 @@ export class AppService implements IRestableService {
   private typeAttribute: string;
 
   constructor() {
-    this.dbUrl = 'couchbase://localhost';
-    this.username = 'Administrator';
-    this.password = 'watchtower';
-    this.bucket = 'Heroes';
-    this.typeAttribute = 'restable_type';
+    this.dbUrl = process.env.COUCHBASE_URL;
+    this.username = process.env.COUCHBASE_USERNAME;
+    this.password = process.env.COUCHBASE_PASSWORD;
+    this.bucket = process.env.COUCHBASE_BUCKET;
+    this.typeAttribute = process.env.TYPE_ATTRIBUTE || 'restable_type';
   }
 
   private async getCluster() {
