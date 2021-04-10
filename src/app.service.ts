@@ -114,7 +114,6 @@ export class AppService implements IRestableService {
     const query = `SELECT META().id, * FROM \`${this.bucket}\` AS data WHERE ${this.typeAttribute}='${type}'`;
     const cluster = await this.getCluster();
     const response = await cluster.query(query);
-    console.log(response.meta);
     return {
       data: response.rows.map((row) => {
         return {
